@@ -1,0 +1,10 @@
+".\Objects\main.obj",
+".\Objects\bes_ds18b20.obj",
+".\Objects\IR.obj",
+".\Objects\LED.obj",
+".\Objects\seg.obj",
+".\Objects\timer.obj",
+".\Objects\Uart.obj",
+".\Objects\adc.obj" 
+TO ".\Objects\空调控制板" 
+PRINT(".\Listings\空调控制板.m51") RAMSIZE(256) 

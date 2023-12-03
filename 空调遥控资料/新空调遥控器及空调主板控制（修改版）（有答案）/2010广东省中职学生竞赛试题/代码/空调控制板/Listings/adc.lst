@@ -1,0 +1,71 @@
+C51 COMPILER V9.54   ADC                                                                   11/20/2023 18:28:43 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE ADC
+OBJECT MODULE PLACED IN .\Objects\adc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Driver\adc\adc.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver;C:\Keil_v5\C51
+                    -\INC\STC) DEBUG OBJECTEXTEND PRINT(.\Listings\adc.lst) TABS(2) OBJECT(.\Objects\adc.obj)
+
+line level    source
+
+   1          #include "adc\adc.h"
+   2          
+   3          #define ADC_POWER 0x80
+   4          #define ADC_SPEEDLL 0x00
+   5          #define ADC_START 0x08
+   6          #define ADC_FLAG    0x10            //ADC complete flag
+   7          
+   8          void InitADC(void)
+   9          {
+  10   1        P1ASF = 0x04;
+  11   1        ADC_RES=0;
+  12   1        ADC_CONTR = ADC_POWER|ADC_SPEEDLL|ADC_START|0x02;
+  13   1        Delay1ms();
+  14   1        Delay1ms();
+  15   1      }
+  16          
+  17          
+  18          unsigned char GetADCResult(unsigned char ch)
+  19          {
+  20   1        ADC_CONTR = ADC_POWER | ADC_SPEEDLL | ch | ADC_START;
+  21   1        _nop_();            //查询前必须等待
+  22   1        _nop_();
+  23   1        _nop_();
+  24   1        _nop_();
+  25   1        
+  26   1        while (!(ADC_CONTR & ADC_FLAG));//等待完成标志
+  27   1        ADC_CONTR &= ~ADC_FLAG;         //关闭 ADC
+  28   1        return ADC_RES;                 //返回ADC结果
+  29   1      }
+  30          
+  31          
+  32          void Delay1ms()   //@11.0592MHz
+  33          {
+  34   1        unsigned char i, j;
+  35   1      
+  36   1        _nop_();
+  37   1        _nop_();
+  38   1        _nop_();
+  39   1        i = 11;
+  40   1        j = 190;
+  41   1        do
+  42   1        {
+  43   2          while (--j);
+  44   2        } while (--i);
+  45   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     47    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.54   ADC                                                                   11/20/2023 18:28:43 PAGE 2   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

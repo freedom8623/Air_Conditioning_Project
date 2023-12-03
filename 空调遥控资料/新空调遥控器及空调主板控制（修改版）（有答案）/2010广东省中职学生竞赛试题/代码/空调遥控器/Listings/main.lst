@@ -1,0 +1,237 @@
+C51 COMPILER V9.54   MAIN                                                                  11/21/2023 00:52:06 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver;D:\WorkSoftware\Keil5_C5
+                    -1\C51\INC\STC) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "IR\IR.h"
+   3          #include "KEY\key.h"
+   4          
+   5          //***处理函数***//
+   6          void Key_Proc(void);
+   7          
+   8          //***按键函数***//
+   9          extern bit flag;
+  10          extern uint count;
+  11          unsigned char key_value = 0;
+  12          unsigned char key_Dowm = 0;
+  13          unsigned char key_old = 0;
+  14          unsigned int Key_Slow_Down = 0;
+  15          
+  16          //***延时***//
+  17          void Delay9us();          //@12.000MHz
+  18          void Timer0_Init(void);   //1微秒@12.000MHz
+  19          void delay_ms(unsigned int ms);
+  20          
+  21          
+  22          //***长按变量***//
+  23          unsigned char key_flag = 0;
+  24          unsigned int key_count = 0 ;
+  25          
+  26          void main()
+  27          {
+  28   1          IR = 0;
+  29   1          P32 = 0;
+  30   1          P33 = 0;
+  31   1          P34 = 0;
+  32   1          P35 = 0;      //按键初始化
+  33   1      
+  34   1          Timer0_Init();//定时器初始化
+  35   1          EA = 1;       //打开总中断
+  36   1      
+  37   1          while(1)
+  38   1          {
+  39   2             Key_Proc();
+  40   2          }
+  41   1      }
+  42          
+  43          
+  44          //***按键处理函数***//
+  45          void Key_Proc(void)
+  46          {
+  47   1          if(Key_Slow_Down) return;   //10ms更新一次
+  48   1          Key_Slow_Down=1;
+  49   1          key_value=Key_Read();
+  50   1          key_Dowm=key_value&(key_value^key_old);
+  51   1          key_old=key_value;
+  52   1      
+  53   1          switch(key_Dowm)
+  54   1          {
+C51 COMPILER V9.54   MAIN                                                                  11/21/2023 00:52:06 PAGE 2   
+
+  55   2          case 1:
+  56   2              key_flag = 5;         //S5 UP
+  57   2              break;
+  58   2          case 2:
+  59   2              key_flag = 7;         //S7 DOWN
+  60   2              break;
+  61   2          case 3:
+  62   2              key_flag = 1;         //S3 L
+  63   2              break;
+  64   2          case 5:
+  65   2              Send_Message(0x66AA); //S2 OFF\ON
+  66   2              break;
+  67   2          case 6:
+  68   2              key_flag = 3;         //S4 R
+  69   2              break;
+  70   2          }
+  71   1      
+  72   1          switch(key_flag)
+  73   1          {
+  74   2          case 1:
+  75   2              if(key_value == 3)
+  76   2              {
+  77   3                  key_flag = 2;
+  78   3                  key_count = 0;
+  79   3              }
+  80   2              break;
+  81   2          case 2:
+  82   2              if(key_value == 3)
+  83   2              {
+  84   3                  if(key_count > 300)
+  85   3                  {
+  86   4                      Send_Message(0xff00);  //S3 L
+  87   4                      delay_ms(100);
+  88   4                  }
+  89   3              }
+  90   2              else
+  91   2              {
+  92   3                  key_flag = 0;
+  93   3                  key_count = 0;
+  94   3              }
+  95   2              break;
+  96   2      
+  97   2          case 3:
+  98   2              if(key_value == 6)
+  99   2              {
+ 100   3                  key_flag = 4;
+ 101   3                  key_count = 0;
+ 102   3              }
+ 103   2              break;
+ 104   2          case 4:
+ 105   2              if(key_value == 6)
+ 106   2              {
+ 107   3                  if(key_count > 300)
+ 108   3                  {
+ 109   4                      Send_Message(0x4455);  //S4 R
+ 110   4                      delay_ms(100);
+ 111   4                  }
+ 112   3              }
+ 113   2              else
+ 114   2              {
+ 115   3                  key_flag = 0;
+ 116   3                  key_count = 0;
+C51 COMPILER V9.54   MAIN                                                                  11/21/2023 00:52:06 PAGE 3   
+
+ 117   3              }
+ 118   2              break;
+ 119   2      
+ 120   2          case 5:
+ 121   2              if(key_value == 1)
+ 122   2              {
+ 123   3                  key_flag = 6;
+ 124   3                  key_count = 0;
+ 125   3              }
+ 126   2              break;
+ 127   2          case 6:
+ 128   2              if(key_value == 1)
+ 129   2              {
+ 130   3                  if(key_count > 300)
+ 131   3                  {
+ 132   4                      Send_Message(0x55AA);   //S5 UP
+ 133   4                      delay_ms(100);
+ 134   4                  }
+ 135   3              }
+ 136   2              else
+ 137   2              {
+ 138   3                  key_flag = 0;
+ 139   3                  key_count = 0;
+ 140   3              }
+ 141   2              break;
+ 142   2      
+ 143   2          case 7:
+ 144   2              if(key_value == 2)
+ 145   2              {
+ 146   3                  key_flag = 8;
+ 147   3                  key_count = 0;
+ 148   3              }
+ 149   2              break;
+ 150   2          case 8:
+ 151   2              if(key_value == 2)
+ 152   2              {
+ 153   3                  if(key_count > 300)
+ 154   3                  {
+ 155   4                      Send_Message(0xAA55);  //S7 DOWN
+ 156   4                  }
+ 157   3              }
+ 158   2              else
+ 159   2              {
+ 160   3                  key_flag = 0;
+ 161   3                  key_count = 0;
+ 162   3              }
+ 163   2              break;
+ 164   2          }
+ 165   1      }
+ 166          
+ 167          //***定时器中断服务***//
+ 168          void Timer0_Isr(void) interrupt 1
+ 169          {
+ 170   1          TL0 = 0x20;       //设置定时初始值
+ 171   1          TH0 = 0xD1;       //设置定时初始值
+ 172   1      
+ 173   1          if(key_flag == 2 || key_flag == 4 || key_flag == 6 || key_flag == 8)
+ 174   1              key_count++;
+ 175   1      
+ 176   1          if(flag == 1)    //定时器延时
+ 177   1          {
+ 178   2              count--;
+C51 COMPILER V9.54   MAIN                                                                  11/21/2023 00:52:06 PAGE 4   
+
+ 179   2              if(count == 0)
+ 180   2                  flag = 0;
+ 181   2          }
+ 182   1          if(++Key_Slow_Down == 10) Key_Slow_Down = 0;
+ 183   1      }
+ 184          
+ 185          //***定时器0初始化***//
+ 186          void Timer0_Init(void)    //1毫秒@12.000MHz
+ 187          {
+ 188   1          AUXR |= 0x80;     //定时器时钟1T模式
+ 189   1          TMOD &= 0xF0;     //设置定时器模式
+ 190   1          TMOD |= 0x01;     //设置定时器模式
+ 191   1          TL0 = 0x20;       //设置定时初始值
+ 192   1          TH0 = 0xD1;       //设置定时初始值
+ 193   1          TF0 = 0;        //清除TF0标志
+ 194   1          TR0 = 1;        //定时器0开始计时
+ 195   1          ET0 = 1;        //使能定时器0中断
+ 196   1      }
+ 197          
+ 198          //***定时器延时**//
+ 199          void delay_ms(unsigned int ms)
+ 200          {
+ 201   1          count = ms;
+ 202   1          flag = 1;
+ 203   1          while(flag);
+ 204   1      }
+ 205          
+ 206          
+ 207          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    431    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,128 @@
+C51 COMPILER V9.54   IR                                                                    11/20/2023 18:28:43 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE IR
+OBJECT MODULE PLACED IN .\Objects\IR.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Driver\IR\IR.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver;C:\Keil_v5\C51\I
+                    -NC\STC) DEBUG OBJECTEXTEND PRINT(.\Listings\IR.lst) TABS(2) OBJECT(.\Objects\IR.obj)
+
+line level    source
+
+   1          #include "IR\IR.h"
+   2          #include "LED\LED.h"
+   3          #include "Uart\Uart.h"
+   4          
+   5          unsigned int Low_timer = 0;
+   6          unsigned int High_timer = 0;
+   7          
+   8          extern unsigned char IR_Buff[2];
+   9          extern unsigned char ucled;
+  10          unsigned char arr_storr[10];
+  11          
+  12          bit InFrared_Way = 0;   
+  13          
+  14          //**中断初始化***//
+  15          void IR_Init(void)   //红外接收管
+  16          { 
+  17   1        IR_INPUT = 1;  //确保初始化高电平       
+  18   1        IT0 = 1;       //设置下降沿触发 
+  19   1        EX0 = 1;       //打开外部中断 
+  20   1      }
+  21          
+  22          //***中断0***//
+  23          void EX0_Isr() interrupt 0    
+  24          {
+  25   1        TH0 = 0;
+  26   1        TL0 = 0;
+  27   1        TF0 = 0;
+  28   1        TR0=1;
+  29   1        InFrared_Way = 1;
+  30   1      }
+  31          
+  32          //***红外读取数据***//
+  33          void InFrared_Init(void)   
+  34          {
+  35   1        if(InFrared_Way == 1)
+  36   1        {
+  37   2          EX0 = 0;         //防止外部中断再次触发
+  38   2          while(IR_INPUT == 0);
+  39   2          TR0 = 0;
+  40   2          Low_timer = TH0 * 256 + TL0;
+  41   2          if((Low_timer < 8500)||(Low_timer > 11000))  //如果不是9ms就退出
+  42   2          {
+  43   3            InFrared_Way = 0;
+  44   3            EX0 = 1;
+  45   3            return;
+  46   3          }
+  47   2          
+  48   2          TH0 = 0;
+  49   2          TL0 = 0;
+  50   2          TF0 = 0;
+  51   2          TR0 = 1;
+  52   2          while(IR_INPUT == 1);
+  53   2          TR0 = 0;
+  54   2          High_timer = TH0 * 256 + TL0;
+C51 COMPILER V9.54   IR                                                                    11/20/2023 18:28:43 PAGE 2   
+
+  55   2            
+  56   2          if((High_timer > 3500)||(High_timer < 4500))  //4.5
+  57   2          {   
+  58   3            IR_Read(IR_Buff);
+  59   3          }   
+  60   2          InFrared_Way = 0;   
+  61   2          EX0 = 1;
+  62   2        }
+  63   1      }
+  64          
+  65          
+  66          
+  67          //***读取数据***//
+  68          void IR_Read(unsigned char *pubuff)
+  69          {
+  70   1        unsigned char i = 0, j = 0,temp = 0;
+  71   1        for(i = 0; i < 2; i++)
+  72   1        {
+  73   2          for(j = 0; j < 8; j++)
+  74   2          {
+  75   3            temp = temp >> 1;
+  76   3            TL0 = 0;        //设置定时初始值
+  77   3            TH0 = 0;        //设置定时初始值  
+  78   3            TR0 = 1;
+  79   3            while(IR_INPUT == 0);
+  80   3            TR0 = 0;
+  81   3            Low_timer = TH0 * 256 + TL0;  
+  82   3      
+  83   3            TL0 = 0;        //设置定时初始值
+  84   3            TH0 = 0;        //设置定时初始值  
+  85   3            TR0 = 1;  
+  86   3            while(IR_INPUT);    
+  87   3            TR0 = 0;
+  88   3            High_timer = TH0 * 256 + TL0;
+  89   3            if(Low_timer < 1500)
+  90   3            return;
+  91   3            
+  92   3            if((High_timer > 1500) && (High_timer < 2500))
+  93   3              temp = temp & 0x7f; //0111 1111
+  94   3            if((High_timer > 3000) && (High_timer < 5000))
+  95   3              temp = temp | 0x80; //1000 0000
+  96   3          }
+  97   2          pubuff[i] = temp;
+  98   2          temp = 0;
+  99   2        }
+ 100   1      }
+ 101          
+ 102          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    318    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

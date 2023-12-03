@@ -1,0 +1,5 @@
+".\Objects\main.obj",
+".\Objects\key.obj",
+".\Objects\IR.obj" 
+TO ".\Objects\¿Õµ÷Ò£¿ØÆ÷" 
+PRINT(".\Listings\¿Õµ÷Ò£¿ØÆ÷.m51") RAMSIZE(256) 

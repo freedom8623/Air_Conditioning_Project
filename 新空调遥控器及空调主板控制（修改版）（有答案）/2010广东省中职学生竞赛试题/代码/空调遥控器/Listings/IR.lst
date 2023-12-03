@@ -1,0 +1,117 @@
+C51 COMPILER V9.54   IR                                                                    11/21/2023 00:52:06 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE IR
+OBJECT MODULE PLACED IN .\Objects\IR.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Driver\IR\IR.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Driver;D:\WorkSoftware\
+                    -Keil5_C51\C51\INC\STC) DEBUG OBJECTEXTEND PRINT(.\Listings\IR.lst) TABS(2) OBJECT(.\Objects\IR.obj)
+
+line level    source
+
+   1          #include "IR\IR.h"
+   2          
+   3          //高电平时间是9us 低电平时间是17us 总共26us
+   4          
+   5          uint count = 0;
+   6          bit flag = 0;
+   7          //发送载波信号
+   8          void Send_IR(unsigned int i)
+   9          {
+  10   1          while(i--)
+  11   1          {
+  12   2              IR = 1;
+  13   2              Delay9us();
+  14   2              IR = 0;
+  15   2              Delay17us();
+  16   2          }
+  17   1      }
+  18          
+  19          
+  20          //不发送载波信号  0
+  21          void NO_Send_IR(unsigned int i)
+  22          {
+  23   1          while(i--)
+  24   1          {
+  25   2              IR = 0;
+  26   2              Delay9us();
+  27   2              Delay17us();
+  28   2          }
+  29   1      }
+  30          
+  31          
+  32          //发送0
+  33          void NEC_IR_0(void)
+  34          {
+  35   1          Send_IR(67);
+  36   1          NO_Send_IR(67);
+  37   1      }
+  38          
+  39          
+  40          //发送1
+  41          void NEC_IR_1(void)
+  42          {
+  43   1          Send_IR(67);
+  44   1          NO_Send_IR(150);
+  45   1      }
+  46          
+  47          
+  48          //发送地址码 地址反码 命令码 命令反码 结束码
+  49          
+  50          void Send_Message(unsigned int Date_code)
+  51          {
+  52   1          unsigned int temp = 0, i = 0;
+  53   1          Send_IR(342);// 9ms引导码
+  54   1          NO_Send_IR(170); //4.5ms不发送载波信号
+C51 COMPILER V9.54   IR                                                                    11/21/2023 00:52:06 PAGE 2   
+
+  55   1      
+  56   1          temp = Date_code;
+  57   1      
+  58   1          for(i = 0; i < 16; i++)
+  59   1          {
+  60   2              if(temp & 0x0001)
+  61   2                  NEC_IR_1();
+  62   2              else
+  63   2                  NEC_IR_0();
+  64   2              temp = temp >> 1;
+  65   2          }
+  66   1          //发送结束码
+  67   1          NEC_IR_0();
+  68   1      }
+  69          
+  70          void Delay9us()   //@12.000MHz
+  71          {
+  72   1          unsigned char data i;
+  73   1      
+  74   1          i = 24;
+  75   1          while (--i);
+  76   1      }
+  77          
+  78          void Delay17us()    //@12.000MHz
+  79          {
+  80   1          unsigned char data i;
+  81   1      
+  82   1          i = 44;
+  83   1          while (--i);
+  84   1      }
+  85          
+  86          void delay_us(unsigned int us)
+  87          {
+  88   1          count = us;
+  89   1          flag = 1;
+  90   1          while(flag);
+  91   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    188    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
